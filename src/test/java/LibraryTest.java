@@ -595,7 +595,7 @@ public class LibraryTest {
         List<DatabaseConnector> connectors = new ArrayList<>();
         List<LibraryManagementSystem> libraries = new ArrayList<>();
         for (int i = 0; i < nThreads; i++) {
-            connector = new DatabaseConnector(connectConfig);
+            DatabaseConnector connector = new DatabaseConnector(connectConfig);
             Assert.assertTrue(connector.connect());
             connectors.add(connector);
             libraries.add(new LibraryManagementSystemImpl(connector));
