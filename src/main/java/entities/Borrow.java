@@ -17,9 +17,9 @@ public final class Borrow {
         this.cardId = card.getCardId();
     }
 
-    public Borrow(int cardId, int bookId) {
-        this.cardId = cardId;
+    public Borrow(int bookId, int cardId) {
         this.bookId = bookId;
+        this.cardId = cardId;
     }
 
     @Override
