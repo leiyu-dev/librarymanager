@@ -3,4 +3,6 @@
 .vscode/
 target/
 src/main/resources/application.yaml
+librarymanagementsystem-frontend/.idea
+librarymanagementsystem-frontend/node_modules/
 .DS_Store
