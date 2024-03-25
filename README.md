@@ -1,3 +1,7 @@
+# Project 1 for Class Database System
+Implemented independently by lei_yu
+
+---------------
 ## 图书管理系统框架使用指南——Java
 
 ### 环境要求
