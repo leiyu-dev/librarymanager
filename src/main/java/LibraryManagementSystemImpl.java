@@ -11,15 +11,33 @@ import java.util.List;
 public class LibraryManagementSystemImpl implements LibraryManagementSystem {
 
     private final DatabaseConnector connector;
-    private final Connection conn;
     public LibraryManagementSystemImpl(DatabaseConnector connector) {
         this.connector = connector;
-        this.conn = connector.getConn();
     }
 
     @Override
     public ApiResult storeBook(Book book) {
-        return new ApiResult(false, "Unimplemented Function");
+        Connection conn= connector.getConn();
+        String sql = "insert into book(category,title,press,publish_year,author,price,stock)" +
+                " values(?,?,?,?,?,?,?)";
+        try {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1,book.getCategory());
+            stmt.setString(2,book.getTitle());
+            stmt.setString(3, book.getPress());
+            stmt.setInt(4,book.getPublishYear());
+            stmt.setString(5,book.getAuthor());
+            stmt.setDouble(6,book.getPrice());
+            stmt.setInt(7,book.getStock());
+            stmt.execute();
+            commit(conn);
+        }
+        catch (Exception e){
+            rollback(conn);
+            e.printStackTrace();
+            return new ApiResult(false,e.getMessage());
+        }
+        return new ApiResult(true, "Successfully StoreBook");
     }
 
     @Override

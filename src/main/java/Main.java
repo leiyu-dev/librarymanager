@@ -1,3 +1,4 @@
+import entities.Book;
 import utils.ConnectConfig;
 import utils.DatabaseConnector;
 
@@ -21,6 +22,9 @@ public class Main {
             }
             /* do somethings */
             LibraryManagementSystemImpl libmana = new LibraryManagementSystemImpl(connector);
+            libmana.resetDatabase();
+            libmana.storeBook(new Book("Com. Sci. ", "Database System", "Leiyu PresS",
+                    1998, "Lei_Yu",  114.514, 1));
 
             // release database connection handler
             if (connector.release()) {
