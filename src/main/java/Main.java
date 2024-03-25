@@ -20,6 +20,7 @@ public class Main {
                 System.exit(1);
             }
             /* do somethings */
+            LibraryManagementSystemImpl libmana = new LibraryManagementSystemImpl(connector);
 
             // release database connection handler
             if (connector.release()) {

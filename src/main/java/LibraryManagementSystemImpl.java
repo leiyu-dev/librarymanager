@@ -11,9 +11,10 @@ import java.util.List;
 public class LibraryManagementSystemImpl implements LibraryManagementSystem {
 
     private final DatabaseConnector connector;
-
+    private final Connection conn;
     public LibraryManagementSystemImpl(DatabaseConnector connector) {
         this.connector = connector;
+        this.conn = connector.getConn();
     }
 
     @Override
