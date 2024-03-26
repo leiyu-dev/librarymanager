@@ -1,4 +1,6 @@
 import entities.Book;
+import queries.ApiResult;
+import queries.BookQueryConditions;
 import utils.ConnectConfig;
 import utils.DatabaseConnector;
 
@@ -23,9 +25,13 @@ public class Main {
             /* do somethings */
             LibraryManagementSystemImpl libmana = new LibraryManagementSystemImpl(connector);
             libmana.resetDatabase();
-            libmana.storeBook(new Book("Com. Sci. ", "Database System", "Leiyu PresS",
+            ApiResult rlt = libmana.storeBook(new Book("Com. Sci. ", "Database System", "Leiyu PresS",
                     1998, "Lei_Yu",  114.514, 1));
-
+            System.out.println(rlt.message);
+            BookQueryConditions bq = new BookQueryConditions();
+            bq.setAuthor("Lei_Yu");
+            rlt = libmana.queryBook(bq);
+            System.out.println(rlt.message);
             // release database connection handler
             if (connector.release()) {
                 log.info("Success to release connection.");
