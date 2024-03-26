@@ -4,7 +4,7 @@ drop table if exists `book`;
 
 create table `book` (
     `book_id` int not null auto_increment,
-    `category` varchar(63) not null,
+    `category` varchar(63) not nuldl,
     `title` varchar(63) not null,
     `press` varchar(63) not null,
     `publish_year` int not null,

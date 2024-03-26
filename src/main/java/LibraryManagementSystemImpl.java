@@ -9,6 +9,7 @@ import utils.DatabaseConnector;
 
 import javax.xml.transform.Result;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,9 +20,9 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
     public LibraryManagementSystemImpl(DatabaseConnector connector) {
         this.connector = connector;
     }
-    private @Nullable List<Book> ToBook(ResultSet rst){
+    private List<Book> ToBook(ResultSet rst){
         try {
-            List<Book>books=null;
+            List<Book>books = new ArrayList<>();
             while(rst.next()) {
                 Book book = new Book(rst.getString("category"),
                         rst.getString("title"),
@@ -30,28 +31,60 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
                         rst.getString("author"),
                         rst.getDouble("price"),
                         rst.getInt("stock"));
+                book.setBookId(rst.getInt("book_id"));
                 books.add(book);
             }
             return books;
         }
         catch (Exception e){
+            System.out.println(e.getMessage());
             return null;
         }
     }
-    @Override
-    public ApiResult storeBook(Book book) {//register a book to database
-        Connection conn = connector.getConn();
 
+    private ResultSet findEqualBook(Book book) {
+        Connection conn = connector.getConn();
         try {
-            String sql = "select title from book where category=? and title=? and press=? and author=?";
+            String sql = "select * from book where category=? and title=? and press=? and author=? and publish_year=?";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, book.getCategory());
             stmt.setString(2, book.getTitle());
             stmt.setString(3, book.getPress());
             stmt.setString(4, book.getAuthor());
+            stmt.setInt(5, book.getPublishYear());
             ResultSet rs = stmt.executeQuery();
             commit(conn);
-            if (rs.next()) throw new Exception("Duplicated Book");
+            return rs;
+        }
+        catch (Exception e){
+            rollback(conn);//todo: throw the error to the last function
+            return null;
+        }
+    }
+    private ResultSet findEqualCard(Card card){
+        Connection conn = connector.getConn();
+        try {
+            String sql = "select * from card where name=? and department=? and type=?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, card.getName());
+            stmt.setString(2, card.getDepartment());
+            stmt.setString(3, card.getType().getStr());
+            ResultSet rs = stmt.executeQuery();
+            commit(conn);
+            return rs;
+        }
+        catch (Exception e){
+            rollback(conn);//todo: throw the error to the last function
+            return null;
+        }
+    }
+
+    @Override
+    public ApiResult storeBook(Book book) {//register a book to database
+        Connection conn = connector.getConn();
+        try {
+            ResultSet rs = findEqual(book);
+            if (rs != null && rs.next()) throw new Exception("Duplicated Book");
         } catch (Exception e) {
             rollback(conn);
             return new ApiResult(false, "search error:" + e.getMessage());
@@ -68,6 +101,9 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             stmt.setDouble(6, book.getPrice());
             stmt.setInt(7, book.getStock());
             stmt.execute();
+            ResultSet rs = findEqual(book);
+            if (rs == null || !rs.next()) throw new Exception("Can not find the inserted data");
+            book.setBookId(rs.getInt("book_id"));
             commit(conn);
             return new ApiResult(true, "Successfully Store Book");
         } catch (Exception e) {
@@ -87,7 +123,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             PreparedStatement StateSearchId = conn.prepareStatement(SqlSearchId);
             StateSearchId.setInt(1, bookId);
             ResultSet rs = StateSearchId.executeQuery();
-            if (rs.getInt("bookId") != bookId) throw new Exception("Cannot find the book");
+            if (!rs.next()) throw new Exception("Cannot find the book");
             now_stock = rs.getInt("stock");
             if (now_stock + deltaStock < 0) throw new Exception("Do not have such amount of books");
         } catch (Exception e) {
@@ -98,12 +134,14 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             PreparedStatement StateUpdateStock = conn.prepareStatement(sqlUpdateStock);
             StateUpdateStock.setInt(1, now_stock + deltaStock);
             StateUpdateStock.setInt(2, bookId);
+            StateUpdateStock.execute();
             commit(conn);
         } catch (Exception e) {
             rollback(conn);
+            e.printStackTrace();
             return new ApiResult(false, "add stock error:" + e.getMessage());
         }
-        return new ApiResult(false, "Successfully Increase BookStock");
+        return new ApiResult(true, "Successfully Increase BookStock");
     }
 
     @Override
@@ -122,14 +160,8 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
         for (int i = 0; i < books.size(); i++) {
             Book book = books.get(i);
             try {
-                String sql = "select title from book where category=? and title=? and press=? and author=?";
-                PreparedStatement stmt = conn.prepareStatement(sql);
-                stmt.setString(1, book.getCategory());
-                stmt.setString(2, book.getTitle());
-                stmt.setString(3, book.getPress());
-                stmt.setString(4, book.getAuthor());
-                ResultSet rs = stmt.executeQuery();
-                if (rs.next()) throw new Exception("Duplicated Book");
+                ResultSet rs = findEqual(book);
+                if (rs != null && rs.next()) throw new Exception("Duplicated Book");
             } catch (Exception e) {
                 return new ApiResult(false, "search error at book :" + i + e.getMessage());
             }
@@ -150,12 +182,19 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
         }
         try {
             StmtAdd.executeBatch();
+            for (int i = 0; i < books.size(); i++) {
+                Book book = books.get(i);
+                ResultSet rs = findEqual(book);
+                if (rs == null || !rs.next()) throw new Exception("Can not find the inserted data");
+                book.setBookId(rs.getInt("book_id"));
+            }
             commit(conn);
+            return new ApiResult(true, "Successfully StoreMassiveBook");
         } catch (Exception e) {
             rollback(conn);
             return new ApiResult(false, "Add failed:" + e.getMessage());
         }
-        return new ApiResult(false, "Successfully StoreMassiveBook");
+
     }
 
     @Override
@@ -172,7 +211,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
         } catch (Exception e) {
             return new ApiResult(false, "Remove error:" + e.getMessage());
         }
-        return new ApiResult(false, "Successfully RemoveBook");
+        return new ApiResult(true, "Successfully RemoveBook");
     }
 
     @Override
@@ -181,7 +220,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
         try {
             Statement StmtFind = conn.createStatement();
             ResultSet rst = StmtFind.executeQuery("select * from book where book_id=" + book.getBookId());
-            if (rst.getInt("book_id") != book.getBookId()) throw new Exception("can not find the book");
+            if(!rst.next()) throw new Exception("can not find the book");
             String UpdateSql = "update book set category=?,title=?,press=?,publish_year=?,author=?,price=? where book_id=?";
             PreparedStatement StmtUpdate = conn.prepareStatement(UpdateSql);
             StmtUpdate.setString(1, book.getCategory());
@@ -197,50 +236,56 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             rollback(conn);
             return new ApiResult(false, "Modify error:" + e.getMessage());
         }
-        return new ApiResult(false, "Successfully ModifyBookInfo");
+        return new ApiResult(true, "Successfully ModifyBookInfo");
     }
 
     @Override
-    public ApiResult queryBook(@NotNull BookQueryConditions conditions) {
+    public ApiResult queryBook( BookQueryConditions conditions) {
+        String sql = "select * from book ";
         try {
             Connection conn = connector.getConn();
-            String sql = "select * from book where ";
-            String SelectCategory = "category=" + conditions.getCategory();
-            String SelectTitle = "title=" + conditions.getTitle();
-            String SelectPress = "Press=" + conditions.getPress();
+            String SelectCategory = " category=\"" + conditions.getCategory()+"\" ";
+            String SelectTitle = " title=\"" + conditions.getTitle()+"\" ";
+            String SelectPress = " Press=\"" + conditions.getPress()+"\" ";
             String SelectYear = conditions.getMinPublishYear() + "<=publish_year and publish_year <=" + conditions.getMaxPublishYear();
-            String SelectAuthor = "author=" + conditions.getAuthor();
+            String SelectAuthor = " author=\"" + conditions.getAuthor()+"\" ";
             String SelectPrice = conditions.getMinPrice() + "<=price and price<=" + conditions.getMaxPrice();
-            String SelectSortBy = "order by " + conditions.getSortBy() + " " + conditions.getSortOrder();
+            String SelectSortBy = " order by " + conditions.getSortBy() + " " + conditions.getSortOrder();
             ResultSet rst;
             boolean FirstCondition = true;
             if (conditions.getCategory() != null) {
                 if (!FirstCondition) sql += " and ";
+                else sql+=" where ";
                 FirstCondition = false;
                 sql += SelectCategory;
             }
             if (conditions.getTitle() != null) {
                 if (!FirstCondition) sql += " and ";
+                else sql+=" where ";
                 FirstCondition = false;
                 sql += SelectTitle;
             }
             if (conditions.getPress() != null) {
                 if (!FirstCondition) sql += " and ";
+                else sql+=" where ";
                 FirstCondition = false;
                 sql += SelectPress;
             }
             if (conditions.getMinPublishYear() != null) {
                 if (!FirstCondition) sql += " and ";
+                else sql+=" where ";
                 FirstCondition = false;
                 sql += SelectYear;
             }
             if (conditions.getAuthor() != null) {
                 if (!FirstCondition) sql += " and ";
+                else sql+=" where ";
                 FirstCondition = false;
                 sql += SelectAuthor;
             }
             if (conditions.getMinPrice() != null) {
                 if (!FirstCondition) sql += " and ";
+                else sql+=" where ";
                 FirstCondition = false;
                 sql += SelectPrice;
             }
@@ -249,9 +294,9 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             Statement StmtFind = conn.createStatement();
             rst = StmtFind.executeQuery(sql);
             List<Book>books=ToBook(rst);
-            return new ApiResult(false, "Successfully Query "+books.size()+" Books",books);
+            return new ApiResult(true, "Successfully Query "+books.size()+" Books",new BookQueryResults(books));
         } catch (Exception e) {
-            return new ApiResult(false, "Query Failed:" + e.getMessage());
+            return new ApiResult(false, "Query Failed:" + e.getMessage()+"\n with the query sql:"+ sql);
         }
     }
     @Override
@@ -291,11 +336,30 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
     public ApiResult registerCard(Card card) {
         Connection conn = connector.getConn();
         try {
-
+            ResultSet rs = findEqualCard(card);
+            if (rs != null && rs.next()) throw new Exception("Duplicated card");
         } catch (Exception e) {
+            rollback(conn);
+            return new ApiResult(false, "search error:" + e.getMessage());
+        }
+        try {
+            String sql = "insert into card(name, department, type)" +
+                    " values(?,?,?,?)";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, card.getName());
+            stmt.setString(2, card.getDepartment());
+            stmt.setString(3, card.getType().getStr());
+            stmt.execute();
+            ResultSet rs = findEqualCard(card);
+            if (rs == null || !rs.next()) throw new Exception("Can not find the inserted data");
+            card.setCardId(rs.getInt("card_id"));
+            commit(conn);
+            return new ApiResult(true, "Successfully Add card");
+        } catch (Exception e) {
+            rollback(conn);
+            e.printStackTrace();
             return new ApiResult(false, e.getMessage());
         }
-        return new ApiResult(false, "Successfully RegisterCard");
     }
 
     @Override

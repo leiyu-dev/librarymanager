@@ -73,6 +73,7 @@ public class LibraryTest {
     public void bookRegisterTest() {
         Book b0 = new Book("Computer Science", "Database System Concepts",
                 "Machine Industry Press", 2023, "Mike", 188.88, 10);
+//        b0.setBookId(1);
         Assert.assertTrue(library.storeBook(b0).ok);
         /* Not allowed to create duplicated records */
         Book b1 = new Book("Computer Science", "Database System Concepts",
@@ -109,8 +110,9 @@ public class LibraryTest {
         }
         Assert.assertEquals(1, actualBookList.size());
         /* generate some books */
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 500; i++) {
             Book b = RandomData.randomBook();
+//            b.setBookId(i+2);
             originBookList.add(b);
             if (actualBookList.contains(b)) {
                 bookValid.add(false);
@@ -122,7 +124,7 @@ public class LibraryTest {
         Assert.assertEquals(originBookList.size(), bookValid.size());
         Assert.assertTrue(originBookList.size() > actualBookList.size());
         /* generate some duplicate books */
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             int dupIndex = RandomUtils.nextInt(0, originBookList.size());
             Book ob = originBookList.get(dupIndex);
             if (bookValid.get(i)) {
@@ -151,18 +153,25 @@ public class LibraryTest {
         }
         /* use query interface to check correctness */
         ApiResult queryResult = library.queryBook(new BookQueryConditions());
+
+//        System.out.println(queryResult.message);
+
         Assert.assertTrue(queryResult.ok);
         // parse query results from payload
         BookQueryResults selectedResults = (BookQueryResults) queryResult.payload;
         Assert.assertEquals(selectedResults.getCount(), selectedResults.getResults().size());
         // sort actual book list by its PK
         List<Book> compareBooks = new ArrayList<>(actualBookList);
+
         compareBooks.sort(Comparator.comparingInt(Book::getBookId));
         Assert.assertEquals(compareBooks.size(), selectedResults.getCount());
+
+
         for (int i = 0; i < compareBooks.size(); i++) {
             Book o1 = compareBooks.get(i);
             Book o2 = selectedResults.getResults().get(i);
             Assert.assertEquals(o1.toString(), o2.toString());
+//            System.out.println(i + ":" + o1.toString());
         }
     }
 
