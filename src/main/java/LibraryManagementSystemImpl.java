@@ -83,7 +83,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
     public ApiResult storeBook(Book book) {//register a book to database
         Connection conn = connector.getConn();
         try {
-            ResultSet rs = findEqual(book);
+            ResultSet rs = findEqualBook(book);
             if (rs != null && rs.next()) throw new Exception("Duplicated Book");
         } catch (Exception e) {
             rollback(conn);
@@ -101,7 +101,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             stmt.setDouble(6, book.getPrice());
             stmt.setInt(7, book.getStock());
             stmt.execute();
-            ResultSet rs = findEqual(book);
+            ResultSet rs = findEqualBook(book);
             if (rs == null || !rs.next()) throw new Exception("Can not find the inserted data");
             book.setBookId(rs.getInt("book_id"));
             commit(conn);
@@ -160,7 +160,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
         for (int i = 0; i < books.size(); i++) {
             Book book = books.get(i);
             try {
-                ResultSet rs = findEqual(book);
+                ResultSet rs = findEqualBook(book);
                 if (rs != null && rs.next()) throw new Exception("Duplicated Book");
             } catch (Exception e) {
                 return new ApiResult(false, "search error at book :" + i + e.getMessage());
@@ -184,7 +184,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             StmtAdd.executeBatch();
             for (int i = 0; i < books.size(); i++) {
                 Book book = books.get(i);
-                ResultSet rs = findEqual(book);
+                ResultSet rs = findEqualBook(book);
                 if (rs == null || !rs.next()) throw new Exception("Can not find the inserted data");
                 book.setBookId(rs.getInt("book_id"));
             }
