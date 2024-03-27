@@ -107,7 +107,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
         }
     }
 
-    private ResultSet findEqualBook(Book book) {
+    private ResultSet findEqualBook(Book book)throws Exception {
         Connection conn = connector.getConn();
         try {
             conn.setAutoCommit(false);
@@ -123,12 +123,12 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             return rs;
         } catch (Exception e) {
             e.printStackTrace();
-            rollback(conn);//todo: throw the error to the last function
-            return null;
+            rollback(conn);
+            throw e;
         }
     }
 
-    private ResultSet findEqualCard(Card card) {
+    private ResultSet findEqualCard(Card card)throws Exception {
         Connection conn = connector.getConn();
         try {
             conn.setAutoCommit(false);
@@ -142,8 +142,8 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             return rs;
         } catch (Exception e) {
             e.printStackTrace();
-            rollback(conn);//todo: throw the error to the last function
-            return null;
+            rollback(conn);
+            throw e;
         }
     }
 
