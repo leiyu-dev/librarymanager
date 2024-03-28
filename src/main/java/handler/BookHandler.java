@@ -7,6 +7,8 @@ import com.sun.net.httpserver.HttpHandler;
 import entities.Book;
 import library.LibraryManagementSystem;
 import queries.ApiResult;
+import queries.BookQueryConditions;
+import queries.BookQueryResults;
 
 import java.io.*;
 import java.util.List;
@@ -19,7 +21,7 @@ public class BookHandler implements HttpHandler {
         // 允许所有域的请求，cors处理
         Headers headers = exchange.getResponseHeaders();
         headers.add("Access-Control-Allow-Origin", "*");
-        headers.add("Access-Control-Allow-Methods", "GET, POST, DELETE");
+        headers.add("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT");
         headers.add("Access-Control-Allow-Headers", "Content-Type");
         // 解析请求的方法，看GET还是POST
         String requestMethod = exchange.getRequestMethod();
@@ -36,7 +38,7 @@ public class BookHandler implements HttpHandler {
         } else if(requestMethod.equals("DELETE")){
             handleDeleteRequest(exchange);
         } else if(requestMethod.equals("PUT")) {
-            handlePutRequest();
+            handlePutRequest(exchange);
         }else
         {
             // 其他请求返回405 Method Not Allowed
@@ -58,12 +60,12 @@ public class BookHandler implements HttpHandler {
 
         try {
             Book book = objectMapper.readValue(requestBodyBuilder.toString(), Book.class);
-            ApiResult rst = library.registerBook(book);
+            ApiResult rst = library.storeBook(book);
             if(!rst.ok)throw new Exception(rst.message);
             exchange.getResponseHeaders().set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(200, 0);
             OutputStream outputStream = exchange.getResponseBody();
-            outputStream.write("Book created successfully".getBytes());
+            outputStream.write("Book stored successfully".getBytes());
             outputStream.close();
         }
         catch (Exception e){
@@ -76,9 +78,17 @@ public class BookHandler implements HttpHandler {
     }
 
     private void handleGetRequest(HttpExchange exchange) throws IOException {
+        InputStream requestBody = exchange.getRequestBody();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));
+        StringBuilder requestBodyBuilder = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            requestBodyBuilder.append(line);
+        }
         try{
-            ApiResult rst = library.showBooks();
-            List<Book> books = ((BookList)(rst.payload)).getBooks();
+            BookQueryConditions bookQueryConditions = objectMapper.readValue(requestBodyBuilder.toString(), BookQueryConditions.class);
+            ApiResult rst = library.queryBook(bookQueryConditions);
+            List<Book> books = ((BookQueryResults)(rst.payload)).getResults();
             StringBuilder response = new StringBuilder("[");
             for(int i=0;i<books.size();i++){
                 Book book=books.get(i);
@@ -126,5 +136,31 @@ public class BookHandler implements HttpHandler {
             outputStream.close();
         }
     }
+    private void handlePutRequest(HttpExchange exchange) throws IOException {//modifyBookInfo
+        InputStream requestBody = exchange.getRequestBody();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));
+        StringBuilder requestBodyBuilder = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            requestBodyBuilder.append(line);
+        }
+        try {
+            Book book = objectMapper.readValue(requestBodyBuilder.toString(), Book.class);
+            ApiResult rst = library.modifyBookInfo(book);
+            if(!rst.ok)throw new Exception(rst.message);
+            exchange.getResponseHeaders().set("Content-Type", "text/plain");
+            exchange.sendResponseHeaders(200, 0);
+            OutputStream outputStream = exchange.getResponseBody();
+            outputStream.write("Book modified successfully".getBytes());
+            outputStream.close();
+        }
+        catch (Exception e){
+            exchange.getResponseHeaders().set("Content-Type", "text/plain");
+            exchange.sendResponseHeaders(400, 0);
+            OutputStream outputStream = exchange.getResponseBody();
+            outputStream.write(e.getMessage().getBytes());
+            outputStream.close();
+        }
 
+    }
 }

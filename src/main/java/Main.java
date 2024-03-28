@@ -1,8 +1,8 @@
 import com.sun.net.httpserver.HttpServer;
-import handler.CardHandler;
+import handler.*;
 import utils.ConnectConfig;
 import utils.DatabaseConnector;
-import handler.Library;
+
 import java.net.InetSocketAddress;
 import java.util.Scanner;
 import java.util.logging.Logger;
@@ -31,6 +31,11 @@ public class Main {
 
             HttpServer server = HttpServer.create(new InetSocketAddress(8010),0);
             server.createContext("/card",new CardHandler());
+            server.createContext("/book",new BookHandler());
+            server.createContext("/book/inc",new IncBookHandler());
+            server.createContext("/book/mstore",new MassiveStoreBookHandler());
+            server.createContext("book/borrow");
+            server.createContext("book/return");
             server.start();
             System.out.println("Opened");
 
