@@ -35,7 +35,7 @@ public class BookHandler implements HttpHandler {
             handlePostRequest(exchange);
         } else if (requestMethod.equals("OPTIONS")) {
             // 处理OPTIONS
-            handleOptionsRequest(exchange);
+            exchange.sendResponseHeaders(400, -1);
         } else if(requestMethod.equals("DELETE")){
             handleDeleteRequest(exchange);
         } else if(requestMethod.equals("PUT")) {
@@ -47,8 +47,6 @@ public class BookHandler implements HttpHandler {
         }
     }
 
-    private void handleOptionsRequest(HttpExchange exchange) {
-    }
 
     private void handlePostRequest(HttpExchange exchange) throws IOException {
         InputStream requestBody = exchange.getRequestBody();

@@ -26,25 +26,29 @@ public class CardHandler implements HttpHandler {
             // 解析请求的方法，看GET还是POST
             String requestMethod = exchange.getRequestMethod();
             // 注意判断要用equals方法而不是==啊，java的小坑（
-            if (requestMethod.equals("GET")) {
-                // 处理GET
-                handleGetRequest(exchange);
-            } else if (requestMethod.equals("POST")) {
-                // 处理POST
-                handlePostRequest(exchange);
-            } else if (requestMethod.equals("OPTIONS")) {
-                // 处理OPTIONS
-                handleOptionsRequest(exchange);
-            } else if(requestMethod.equals("DELETE")){
-                handleDeleteRequest(exchange);
-            } else {
-                // 其他请求返回405 Method Not Allowed
-                exchange.sendResponseHeaders(405, -1);
+            switch (requestMethod) {
+                case "GET":
+                    // 处理GET
+                    handleGetRequest(exchange);
+                    break;
+                case "POST":
+                    // 处理POST
+                    handlePostRequest(exchange);
+                    break;
+                case "OPTIONS":
+                    // 处理OPTIONS
+                    exchange.sendResponseHeaders(400, -1);
+                    break;
+                case "DELETE":
+                    handleDeleteRequest(exchange);
+                    break;
+                default:
+                    // 其他请求返回405 Method Not Allowed
+                    exchange.sendResponseHeaders(405, -1);
+                    break;
             }
         }
 
-    private void handleOptionsRequest(HttpExchange exchange) {
-    }
 
     private void handlePostRequest(HttpExchange exchange) throws IOException {
         InputStream requestBody = exchange.getRequestBody();

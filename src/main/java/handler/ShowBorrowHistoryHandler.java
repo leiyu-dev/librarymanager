@@ -4,20 +4,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import entities.Borrow;
 import entities.Card;
 import library.Library;
 import library.LibraryManagementSystem;
 import queries.ApiResult;
 import queries.BorrowHistories;
-import queries.CardList;
 
 import java.io.*;
 import java.util.List;
 
 public class ShowBorrowHistoryHandler implements HttpHandler {
-    private static ObjectMapper objectMapper = new ObjectMapper();
-    private LibraryManagementSystem library = Library.library;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final LibraryManagementSystem library = Library.library;
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -27,7 +25,7 @@ public class ShowBorrowHistoryHandler implements HttpHandler {
         headers.add("Access-Control-Allow-Headers", "Content-Type");
         String requestMethod = exchange.getRequestMethod();
         if (requestMethod.equals("OPTIONS")) {
-            handleOptionsRequest(exchange);
+            exchange.sendResponseHeaders(400, -1);
         } else if (requestMethod.equals("GET")) {
             handleGetRequest(exchange);
         } else {
@@ -35,8 +33,6 @@ public class ShowBorrowHistoryHandler implements HttpHandler {
         }
     }
 
-    private void handleOptionsRequest(HttpExchange exchange) {
-    }
     private void handleGetRequest(HttpExchange exchange) throws IOException {
         InputStream requestBody = exchange.getRequestBody();
         BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));

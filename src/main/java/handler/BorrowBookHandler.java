@@ -23,7 +23,7 @@ public class BorrowBookHandler implements HttpHandler {
         headers.add("Access-Control-Allow-Headers", "Content-Type");
         String requestMethod = exchange.getRequestMethod();
         if (requestMethod.equals("OPTIONS")) {
-            handleOptionsRequest(exchange);
+            exchange.sendResponseHeaders(400, -1);
         } else if (requestMethod.equals("POST")) {
             handlePostRequest(exchange);
         } else {

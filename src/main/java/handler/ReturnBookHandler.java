@@ -23,7 +23,7 @@ public class ReturnBookHandler implements HttpHandler {
         headers.add("Access-Control-Allow-Headers", "Content-Type");
         String requestMethod = exchange.getRequestMethod();
         if (requestMethod.equals("OPTIONS")) {
-            handleOptionsRequest(exchange);
+            exchange.sendResponseHeaders(400, -1);
         } else if (requestMethod.equals("POST")) {
             handlePostRequest(exchange);
         } else {
@@ -31,8 +31,6 @@ public class ReturnBookHandler implements HttpHandler {
         }
     }
 
-    private void handleOptionsRequest(HttpExchange exchange) {
-    }
     private void handlePostRequest(HttpExchange exchange) throws IOException {
         InputStream requestBody = exchange.getRequestBody();
         BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));

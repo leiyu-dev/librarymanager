@@ -41,7 +41,7 @@ public class Main {
             System.out.println("Opened");
 
             Scanner scanner = new Scanner(System.in);
-            String get = null;
+            String get ;
             while(true)
             {
                 get=scanner.nextLine();

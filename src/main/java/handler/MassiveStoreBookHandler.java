@@ -29,7 +29,7 @@ public class MassiveStoreBookHandler implements HttpHandler {
         // 注意判断要用equals方法而不是==啊，java的小坑（
         if (requestMethod.equals("OPTIONS")) {
             // 处理OPTIONS
-            handleOptionsRequest(exchange);
+            exchange.sendResponseHeaders(400, -1);
         } else if (requestMethod.equals("POST")) {
             handlePostRequest(exchange);
         } else {
@@ -38,8 +38,6 @@ public class MassiveStoreBookHandler implements HttpHandler {
         }
     }
 
-    private void handleOptionsRequest(HttpExchange exchange) {
-    }
     private void handlePostRequest(HttpExchange exchange) throws IOException {
         InputStream requestBody = exchange.getRequestBody();
         BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));
