@@ -1,3 +1,5 @@
+package library;
+
 import entities.Book;
 import entities.Borrow;
 import entities.Card;
@@ -33,7 +35,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             book.setBookId(rst.getInt("book_id"));
             return book;
         } catch (Exception e) {
-            e.printStackTrace();
+
             return null;
         }
     }
@@ -48,7 +50,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             borrow.setReturnTime(rst.getLong("return_time"));
             return borrow;
         } catch (Exception e) {
-            e.printStackTrace();
+
             return null;
         }
     }
@@ -62,7 +64,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             }
             return books;
         } catch (Exception e) {
-            e.printStackTrace();
+
             System.out.println(e.getMessage());
             return null;
         }
@@ -80,7 +82,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             }
             return cards;
         } catch (Exception e) {
-            e.printStackTrace();
+
             return null;
         }
     }
@@ -102,12 +104,12 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             }
             return items;
         } catch (Exception e) {
-            e.printStackTrace();
+
             return null;
         }
     }
 
-    private ResultSet findEqualBook(Book book)throws Exception {
+    private ResultSet findEqualBook(Book book) throws Exception {
         Connection conn = connector.getConn();
         try {
             conn.setAutoCommit(false);
@@ -122,13 +124,13 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             commit(conn);
             return rs;
         } catch (Exception e) {
-            e.printStackTrace();
+
             rollback(conn);
             throw e;
         }
     }
 
-    private ResultSet findEqualCard(Card card)throws Exception {
+    private ResultSet findEqualCard(Card card) throws Exception {
         Connection conn = connector.getConn();
         try {
             conn.setAutoCommit(false);
@@ -141,7 +143,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             commit(conn);
             return rs;
         } catch (Exception e) {
-            e.printStackTrace();
+
             rollback(conn);
             throw e;
         }
@@ -155,7 +157,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             ResultSet rs = findEqualBook(book);
             if (rs != null && rs.next()) throw new Exception("Duplicated Book");
         } catch (Exception e) {
-            e.printStackTrace();
+
             rollback(conn);
             return new ApiResult(false, "search error:" + e.getMessage());
         }
@@ -178,7 +180,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             return new ApiResult(true, "Successfully Store Book");
         } catch (Exception e) {
             rollback(conn);
-            e.printStackTrace();
+
             return new ApiResult(false, e.getMessage());
         }
 
@@ -198,7 +200,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             now_stock = rs.getInt("stock");
             if (now_stock + deltaStock < 0) throw new Exception("Do not have such amount of books");
         } catch (Exception e) {
-            e.printStackTrace();
+
             return new ApiResult(false, "check error:" + e.getMessage());
         }
         try {
@@ -210,7 +212,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             commit(conn);
         } catch (Exception e) {
             rollback(conn);
-            e.printStackTrace();
+
             return new ApiResult(false, "add stock error:" + e.getMessage());
         }
         return new ApiResult(true, "Successfully Increase BookStock");
@@ -226,7 +228,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             conn.setAutoCommit(false);
             StmtAdd = conn.prepareStatement(sqlAdd);
         } catch (Exception e) {
-            e.printStackTrace();
+
             return new ApiResult(false, "Statement error");
         }
 
@@ -236,7 +238,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
                 ResultSet rs = findEqualBook(book);
                 if (rs != null && rs.next()) throw new Exception("Duplicated Book");
             } catch (Exception e) {
-                e.printStackTrace();
+
                 return new ApiResult(false, "search error at book :" + i + e.getMessage());
             }
 
@@ -250,7 +252,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
                 StmtAdd.setInt(7, book.getStock());
                 StmtAdd.addBatch();
             } catch (Exception e) {
-                e.printStackTrace();
+
                 return new ApiResult(false, "add book error at " + i + e.getMessage());
             }
         }
@@ -264,7 +266,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             commit(conn);
             return new ApiResult(true, "Successfully StoreMassiveBook");
         } catch (Exception e) {
-            e.printStackTrace();
+
             rollback(conn);
             return new ApiResult(false, "Add failed:" + e.getMessage());
         }
@@ -289,7 +291,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             commit(conn);
             return new ApiResult(true, "Successfully RemoveBook");
         } catch (Exception e) {
-            e.printStackTrace();
+
             rollback(conn);
             return new ApiResult(false, "Remove error:" + e.getMessage());
         }
@@ -315,7 +317,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             StmtUpdate.execute();
             commit(conn);
         } catch (Exception e) {
-            e.printStackTrace();
+
             rollback(conn);
             return new ApiResult(false, "Modify error:" + e.getMessage());
         }
@@ -325,19 +327,19 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
     @Override
     public ApiResult queryBook(BookQueryConditions conditions) {
         String sql = "select * from book ";
-        int now_place=1;
+        int now_place = 1;
         Connection conn = connector.getConn();
         try {
             conn.setAutoCommit(false);
             String SelectCategory = " category=? ";
             String SelectTitle = " title like ?";
             String SelectPress = " Press like ?";
-            String SelectMinYear ="?<=publish_year";
+            String SelectMinYear = "?<=publish_year";
             String SelectMaxYear = "publish_year <=?";
             String SelectAuthor = " author like ?";
             String SelectMinPrice = "?<=price";
             String SelectMaxPrice = "price<=?";
-            String SelectSortBy = " order by "+conditions.getSortBy()+" "+conditions.getSortOrder()+" ,book_id asc";
+            String SelectSortBy = " order by " + conditions.getSortBy() + " " + conditions.getSortOrder() + " ,book_id asc";
             ResultSet rst;
             boolean FirstCondition = true;
             if (conditions.getCategory() != null) {
@@ -388,24 +390,24 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
                 FirstCondition = false;
                 sql += SelectMaxPrice;
             }
-            if (conditions.getSortBy() != null)sql += SelectSortBy;
+            if (conditions.getSortBy() != null) sql += SelectSortBy;
 
             PreparedStatement StmtFind = conn.prepareStatement(sql);
 
 
-            if (conditions.getCategory() != null)StmtFind.setString(now_place++,conditions.getCategory());
-            if (conditions.getTitle() != null)StmtFind.setString(now_place++,"%"+conditions.getTitle()+"%");
-            if (conditions.getPress() != null)StmtFind.setString(now_place++, "%"+conditions.getPress()+"%");
-            if (conditions.getMinPublishYear() != null)StmtFind.setInt(now_place++,conditions.getMinPublishYear());
-            if (conditions.getMaxPublishYear() != null)StmtFind.setInt(now_place++,conditions.getMaxPublishYear());
-            if (conditions.getAuthor() != null)StmtFind.setString(now_place++,"%"+conditions.getAuthor()+"%");
-            if (conditions.getMinPrice() != null)StmtFind.setDouble(now_place++,conditions.getMinPrice());
-            if (conditions.getMaxPrice() != null)StmtFind.setDouble(now_place++,conditions.getMaxPrice());
+            if (conditions.getCategory() != null) StmtFind.setString(now_place++, conditions.getCategory());
+            if (conditions.getTitle() != null) StmtFind.setString(now_place++, "%" + conditions.getTitle() + "%");
+            if (conditions.getPress() != null) StmtFind.setString(now_place++, "%" + conditions.getPress() + "%");
+            if (conditions.getMinPublishYear() != null) StmtFind.setInt(now_place++, conditions.getMinPublishYear());
+            if (conditions.getMaxPublishYear() != null) StmtFind.setInt(now_place++, conditions.getMaxPublishYear());
+            if (conditions.getAuthor() != null) StmtFind.setString(now_place++, "%" + conditions.getAuthor() + "%");
+            if (conditions.getMinPrice() != null) StmtFind.setDouble(now_place++, conditions.getMinPrice());
+            if (conditions.getMaxPrice() != null) StmtFind.setDouble(now_place++, conditions.getMaxPrice());
             rst = StmtFind.executeQuery();
             List<Book> books = toBook(rst);
             return new ApiResult(true, "Successfully Query " + books.size() + " Books", new BookQueryResults(books));
         } catch (Exception e) {
-            e.printStackTrace();
+
 
             return new ApiResult(false, "Query Failed:" + e.getMessage() + "\n with the query sql:" + sql);
         }
@@ -437,7 +439,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             return new ApiResult(true, "Successfully BorrowBook");
         } catch (Exception e) {
             rollback(conn);
-            e.printStackTrace();
+
 //            System.out.println(e.getMessage());
             return new ApiResult(false, e.getMessage());
         }
@@ -477,7 +479,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             commit(conn);
         } catch (Exception e) {
             rollback(conn);
-            e.printStackTrace();
+
             return new ApiResult(false, e.getMessage());
         }
         return new ApiResult(true, "Successfully ReturnBook");
@@ -494,7 +496,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             return new ApiResult(true, "Successfully Show " + items.size() + " Borrow History", new BorrowHistories(items));
 
         } catch (Exception e) {
-            e.printStackTrace();
+
             return new ApiResult(false, e.getMessage());
         }
     }
@@ -507,7 +509,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             ResultSet rs = findEqualCard(card);
             if (rs != null && rs.next()) throw new Exception("Duplicated card");
         } catch (Exception e) {
-            e.printStackTrace();
+
             rollback(conn);
             return new ApiResult(false, "search error:" + e.getMessage());
         }
@@ -526,7 +528,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             return new ApiResult(true, "Successfully Add card");
         } catch (Exception e) {
             rollback(conn);
-            e.printStackTrace();
+
             return new ApiResult(false, e.getMessage());
         }
     }
@@ -553,7 +555,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             return new ApiResult(true, "Successfully RemoveCard");
         } catch (Exception e) {
             rollback(conn);
-            e.printStackTrace();
+
             return new ApiResult(false, "Remove error:" + e.getMessage());
         }
     }
@@ -568,7 +570,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             List<Card> cards = toCard(rs);
             return new ApiResult(true, "Successfully Show " + cards.size() + " Cards", new CardList(cards));
         } catch (Exception e) {
-            e.printStackTrace();
+
             return new ApiResult(false, e.getMessage());
         }
     }
@@ -589,7 +591,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             stmt.executeBatch();
             commit(conn);
         } catch (Exception e) {
-            e.printStackTrace();
+
             rollback(conn);
             return new ApiResult(false, e.getMessage());
         }
@@ -600,7 +602,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
         try {
             conn.rollback();
         } catch (Exception e) {
-            e.printStackTrace();
+
         }
     }
 
@@ -608,7 +610,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
         try {
             conn.commit();
         } catch (Exception e) {
-            e.printStackTrace();
+
         }
     }
 

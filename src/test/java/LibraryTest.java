@@ -1,6 +1,8 @@
 import entities.Book;
 import entities.Borrow;
 import entities.Card;
+import library.LibraryManagementSystem;
+import library.LibraryManagementSystemImpl;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;

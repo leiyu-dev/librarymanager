@@ -1,6 +1,9 @@
+package library;
+
 import entities.Book;
 import entities.Borrow;
 import entities.Card;
+import library.LibraryManagementSystemImpl;
 import queries.ApiResult;
 import queries.BookQueryConditions;
 

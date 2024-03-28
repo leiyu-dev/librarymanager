@@ -1,6 +1,7 @@
 import entities.Book;
 import entities.Borrow;
 import entities.Card;
+import library.LibraryManagementSystem;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import queries.ApiResult;
