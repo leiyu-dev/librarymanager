@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.Random;
 
-public final class Book {
+public final class  Book {
     private int bookId;
     private String category;
     private String title;

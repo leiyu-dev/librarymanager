@@ -1,12 +1,13 @@
 import com.sun.net.httpserver.HttpServer;
 import handler.*;
+import library.Library;
 import utils.ConnectConfig;
 import utils.DatabaseConnector;
 
 import java.net.InetSocketAddress;
 import java.util.Scanner;
 import java.util.logging.Logger;
-import static handler.Library.SetLibrary;
+import static library.Library.SetLibrary;
 
 public class Main {
 
@@ -27,15 +28,15 @@ public class Main {
             }
             /* do somethings */
             SetLibrary(connector);
-            Library.library.resetDatabase();
 
             HttpServer server = HttpServer.create(new InetSocketAddress(8010),0);
             server.createContext("/card",new CardHandler());
             server.createContext("/book",new BookHandler());
             server.createContext("/book/inc",new IncBookHandler());
             server.createContext("/book/mstore",new MassiveStoreBookHandler());
-            server.createContext("book/borrow");
-            server.createContext("book/return");
+            server.createContext("/book/borrow",new BorrowBookHandler());
+            server.createContext("/book/return",new ReturnBookHandler());
+            server.createContext("/borrow/history",new ShowBorrowHistoryHandler());
             server.start();
             System.out.println("Opened");
 
@@ -52,6 +53,10 @@ public class Main {
                     }
                     server.stop(0);
                     return;
+                }
+                if(get.equals("reset database")){
+                    Library.library.resetDatabase();
+                    System.out.println("Reset Successfully");
                 }
             }
         } catch (Exception e) {

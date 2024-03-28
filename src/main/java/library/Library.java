@@ -1,4 +1,4 @@
-package handler;
+package library;
 import library.LibraryManagementSystem;
 import library.LibraryManagementSystemImpl;
 import utils.DatabaseConnector;

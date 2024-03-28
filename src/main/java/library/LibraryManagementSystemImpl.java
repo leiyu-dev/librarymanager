@@ -450,11 +450,10 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
         Connection conn = connector.getConn();
         try {
             conn.setAutoCommit(false);
-            String QueryBorrowSql = "select * from borrow where book_id=? and card_id=? and borrow_time=? for update ";
+            String QueryBorrowSql = "select * from borrow where book_id=? and card_id=? and return_time=0 for update ";
             PreparedStatement stmt = conn.prepareStatement(QueryBorrowSql);
             stmt.setInt(1, borrow.getBookId());
             stmt.setInt(2, borrow.getCardId());
-            stmt.setLong(3, borrow.getBorrowTime());
             ResultSet rsBorrow = stmt.executeQuery();
             if (!rsBorrow.next()) throw new Exception("Cannot find Borrow History");
             if (rsBorrow.getLong("borrow_time") >= borrow.getReturnTime()) throw new Exception("Invalid return time");
@@ -471,7 +470,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             UpdateBorrowStmt.setLong(1, borrow.getReturnTime());
             UpdateBorrowStmt.setInt(2, borrow.getCardId());
             UpdateBorrowStmt.setInt(3, borrow.getBookId());
-            UpdateBorrowStmt.setLong(4, borrow.getBorrowTime());
+            UpdateBorrowStmt.setLong(4, rsBorrow.getLong("borrow_time"));
             UpdateBorrowStmt.execute();
 
             Statement UpdateBookStmt = conn.createStatement();
