@@ -46,6 +46,8 @@ public final class  Book {
     }
 
     public Book() {
+        price=-1;
+        publishYear=-1;
     }
 
     public Book(String category, String title, String press, int publishYear,

@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class LibraryManagementSystemImpl implements LibraryManagementSystem {
 
@@ -162,6 +163,13 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             return new ApiResult(false, "search error:" + e.getMessage());
         }
         try {
+            if(Objects.equals(book.getCategory(), ""))throw new Exception("invalid category");
+            if(Objects.equals(book.getTitle(), ""))throw new Exception("invalid title");
+            if(Objects.equals(book.getPress(), ""))throw new Exception("invalid press");
+            if(book.getPublishYear()<0)throw new Exception("invalid publish year");
+            if(Objects.equals(book.getAuthor(), ""))throw new Exception("invalid author");
+            if(book.getPrice()<0)throw new Exception("invalid price");
+            if(book.getStock()<0)throw new Exception("invalid stock");
             String sql = "insert into book(category,title,press,publish_year,author,price,stock)" +
                     " values(?,?,?,?,?,?,?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -307,6 +315,12 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             if (!rst.next()) throw new Exception("can not find the book");
             String UpdateSql = "update book set category=?,title=?,press=?,publish_year=?,author=?,price=? where book_id=?";
             PreparedStatement StmtUpdate = conn.prepareStatement(UpdateSql);
+            if(book.getCategory()==null)book.setCategory(rst.getString("category"));
+            if(book.getTitle()==null)book.setTitle(rst.getString("title"));
+            if(book.getPress()==null)book.setPress(rst.getString("press"));
+            if(book.getPublishYear()<0)book.setPublishYear(rst.getInt("publish_year"));
+            if(book.getAuthor()==null)book.setAuthor(rst.getString("author"));
+            if(book.getPrice()<0)book.setPrice(rst.getFloat("price"));
             StmtUpdate.setString(1, book.getCategory());
             StmtUpdate.setString(2, book.getTitle());
             StmtUpdate.setString(3, book.getPress());

@@ -4,10 +4,10 @@
     <div style="margin-top: 20px; margin-left: 40px; font-size: 2em; font-weight: bold; margin-bottom: 20px ">图书管理
     </div>
     <!-- 查询按钮 -->
-    <el-button style="margin-left: 40px" type="primary" @click="queryBookVisible = true">点击筛选搜索条件</el-button>
+    <el-button style="margin-left: 35px" type="primary" @click="queryBookVisible = true">点击筛选搜索条件</el-button>
 
     <!-- 添加按钮 -->
-    <el-button class="newBookAdd"
+    <el-button style="margin-left: 50px" class="newBookAdd"
                @click="newBookInfo.category = '', newBookInfo.title='', newBookInfo.press='', newBookInfo.publishYear='',newBookInfo.author='', newBookInfo.price = '',newBookInfo.stock= '',newBookVisible=true">
       添加图书
     </el-button>
@@ -16,11 +16,15 @@
       改变库存
     </el-button>
 
-    <el-button class="removeBook" @click="removeBookId='', removeBookVisible=true">
+    <el-button class="incBookAdd" @click="InitRawModify">
+      修改图书信息
+    </el-button>
+
+    <el-button class="removeBook" type="danger" @click="removeBookId='', removeBookVisible=true">
       删除图书
     </el-button>
 
-    <el-button class="borrowBook" @click="borrowBookId='',borrowCardId='',borrowBookVisible=true">
+    <el-button style="margin-left: 50px" class="borrowBook" @click="borrowBookId='',borrowCardId='',borrowBookVisible=true">
       借出图书
     </el-button>
 
@@ -40,7 +44,7 @@
       <el-table-column prop="price" label="价格" sortable/>
       <el-table-column prop="stock" label="库存" sortable/>
       <el-table-column label="操作"><template #default="{ row }">
-          <el-button @click="modifyBook={...row},modifyBookVisible=true">修改信息</el-button>
+          <el-button @click="modifyBook={...row},modifyBookVisible=true,rawModifyBookVisible=false">修改信息</el-button>
       </template>
       </el-table-column>
 
@@ -58,7 +62,7 @@
         <el-input v-model="newBookInfo.title" style="width: 12.5vw;" clearable></el-input>
       </div>
       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
-        press：
+        出版社：
         <el-input v-model="newBookInfo.press" style="width: 12.5vw;" clearable></el-input>
       </div>
       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
@@ -114,7 +118,7 @@
       <template #footer>
                 <span>
                     <el-button @click="removeBookVisible = false">取消</el-button>
-                    <el-button type="primary" @click="ConfirmRemoveBook">确定</el-button>
+                    <el-button type="danger" @click="ConfirmRemoveBook">确定</el-button>
                 </span>
       </template>
     </el-dialog>
@@ -238,36 +242,36 @@
     <el-dialog v-model="modifyBookVisible" title="修改图书信息" width='30%' align-center>
       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
         书号：
-        <el-input v-model="modifyBook.bookId" disabled style="width: 12.5vw;" placeholder="请输入大于0的整数" clearable></el-input>
+        <el-input :disabled="!rawModifyBookVisible" v-model="modifyBook.bookId" style="width: 12.5vw;" placeholder="要修改的书的编号" clearable></el-input>
       </div>
       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
         类别：
-        <el-input v-model="modifyBook.category" style="width: 12.5vw;" placeholder="负数表示减少库存" clearable></el-input>
+        <el-input v-model="modifyBook.category" style="width: 12.5vw;" placeholder="留空表示不修改" clearable></el-input>
       </div>
       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
         书名：
-        <el-input v-model="modifyBook.title" style="width: 12.5vw;" placeholder="负数表示减少库存" clearable></el-input>
+        <el-input v-model="modifyBook.title" style="width: 12.5vw;" placeholder="留空表示不修改" clearable></el-input>
       </div>
       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
         出版社：
-        <el-input v-model="modifyBook.press" style="width: 12.5vw;" placeholder="负数表示减少库存" clearable></el-input>
+        <el-input v-model="modifyBook.press" style="width: 12.5vw;" placeholder="留空表示不修改" clearable></el-input>
       </div>
       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
         作者：
-        <el-input v-model="modifyBook.author" style="width: 12.5vw;" placeholder="负数表示减少库存" clearable></el-input>
+        <el-input v-model="modifyBook.author" style="width: 12.5vw;" placeholder="留空表示不修改" clearable></el-input>
       </div>
       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
         价格：
-        <el-input v-model="modifyBook.price" style="width: 12.5vw;" placeholder="负数表示减少库存" clearable></el-input>
+        <el-input v-model="modifyBook.price" style="width: 12.5vw;" placeholder="留空表示不修改" clearable></el-input>
       </div>
       <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
         库存：
-        <el-input v-model="modifyBook.stock" disabled style="width: 12.5vw;" placeholder="负数表示减少库存" clearable></el-input>
+        <el-input v-model="modifyBook.stock" disabled style="width: 12.5vw;" placeholder="此处无法修改库存" clearable></el-input>
       </div>
       <template #footer>
                 <span>
                     <el-button @click="modifyBookVisible = false">取消</el-button>
-                    <el-button type="primary" @click="ConfirmIncBook">确定</el-button>
+                    <el-button type="primary" :disabled="modifyBook===null||modifyBook.bookId===null||modifyBook.bookId.length===0 "  @click="ConfirmModifyBook">确定</el-button>
                 </span>
       </template>
     </el-dialog>
@@ -366,6 +370,7 @@ export default {
       queryCardVisible: false,
       queryBookVisible: false,
       modifyBookVisible: false,
+      rawModifyBookVisible: false,
       incBookId: "",
       incBookStock: "",
     }
@@ -399,7 +404,13 @@ export default {
             ElMessage.success("书本添加成功") // 显示消息提醒
             this.newBookVisible = false // 将对话框设置为不可见
             this.QueryBooks() // 重新查询书本以刷新页面
-          })
+          }).catch(error => {
+            if (error.response) {
+              ElMessage.error('错误：'+ error.response.data);
+            } else {
+              ElMessage.error('请求失败，但没有收到响应：' + error.message);
+            }
+      });
 
     },
     ConfirmRemoveBook() {
@@ -414,7 +425,13 @@ export default {
             this.removeBookVisible = false;
             ElMessage.success("删除成功");
             this.QueryBooks();
-          });
+          }).catch(error => {
+        if (error.response) {
+          ElMessage.error('错误：'+ error.response.data);
+        } else {
+          ElMessage.error('请求失败，但没有收到响应：' + error.message);
+        }
+      });
     },
     QueryBooks() {
       this.books = []
@@ -425,7 +442,13 @@ export default {
             books.forEach(book => { // 对于每本书
               this.books.push(book) // 将其加入到列表中
             })
-          })
+          }).catch(error => {
+            if (error.response) {
+              ElMessage.error('错误：'+ error.response.data);
+            } else {
+              ElMessage.error('请求失败，但没有收到响应：' + error.message);
+            }
+          });
 
     },
     ConfirmReturnBook() {
@@ -439,7 +462,13 @@ export default {
             ElMessage.success("归还成功");
             this.returnBookVisible = false;
             this.QueryBooks();
-          });
+          }).catch(error => {
+        if (error.response) {
+          ElMessage.error('错误：'+ error.response.data);
+        } else {
+          ElMessage.error('请求失败，但没有收到响应：' + error.message);
+        }
+      });;
     },
     ConfirmBorrowBook() {
       axios.post("/book/borrow",
@@ -452,7 +481,13 @@ export default {
             ElMessage.success("借出成功");
             this.borrowBookVisible = false;
             this.QueryBooks();
-          });
+          }).catch(error => {
+        if (error.response) {
+          ElMessage.error('错误：'+ error.response.data);
+        } else {
+          ElMessage.error('请求失败，但没有收到响应：' + error.message);
+        }
+      });;
     },
     ConfirmIncBook() {
       axios.put("/book/inc",
@@ -464,20 +499,44 @@ export default {
             ElMessage.success("更新成功");
             this.incBookVisible = false;
             this.QueryBooks();
-          });
+          }).catch(error => {
+        if (error.response) {
+          ElMessage.error('错误：'+ error.response.data);
+        } else {
+          ElMessage.error('请求失败，但没有收到响应：' + error.message);
+        }
+      });;
     },
     ConfirmQueryBook() {
       this.QueryBooks();
     },
-    HandleModify(row){
-      console.log(row);
+    ConfirmModifyBook(){
+      axios.put("/book", this.modifyBook)
+          .then(response => {
+            ElMessage.success("修改成功");
+            this.rawModifyBookVisible=false;
+            this.modifyBookVisible = false;
+            this.QueryBooks();
+          }).catch(error => {
+        if (error.response) {
+          ElMessage.error('错误：'+ error.response.data);
+        } else {
+          ElMessage.error('请求失败，但没有收到响应：' + error.message);
+        }
+      });
+    },
+    InitRawModify(){
+      this.modifyBook={
+        bookId: "",
+      };
+      this.rawModifyBookVisible=true;
+      this.modifyBookVisible=true;
     }
   },
-
   mounted() {
     this.QueryBooks()
+  },
 
-  }
 }
 
 </script>
