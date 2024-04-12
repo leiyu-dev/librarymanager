@@ -7,11 +7,14 @@ import com.sun.net.httpserver.HttpHandler;
 import entities.Card;
 import library.Library;
 import library.LibraryManagementSystem;
+import log.Log;
 import queries.ApiResult;
 import queries.BorrowHistories;
 
 import java.io.*;
+import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 public class ShowBorrowHistoryHandler implements HttpHandler {
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -25,7 +28,7 @@ public class ShowBorrowHistoryHandler implements HttpHandler {
         headers.add("Access-Control-Allow-Headers", "Content-Type");
         String requestMethod = exchange.getRequestMethod();
         if (requestMethod.equals("OPTIONS")) {
-            exchange.sendResponseHeaders(400, -1);
+            exchange.sendResponseHeaders(200, -1);
         } else if (requestMethod.equals("GET")) {
             handleGetRequest(exchange);
         } else {
@@ -34,6 +37,7 @@ public class ShowBorrowHistoryHandler implements HttpHandler {
     }
 
     private void handleGetRequest(HttpExchange exchange) throws IOException {
+        Log.log.info("ShowBookGet");
         InputStream requestBody = exchange.getRequestBody();
         BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));
         StringBuilder requestBodyBuilder = new StringBuilder();
@@ -41,9 +45,13 @@ public class ShowBorrowHistoryHandler implements HttpHandler {
         while ((line = reader.readLine()) != null) {
             requestBodyBuilder.append(line);
         }
+
+        URI requestURI = exchange.getRequestURI();
+        String query = requestURI.getQuery();
+        int id = Integer.parseInt(query.split("=")[1]);
+
         try {
-            Card card = objectMapper.readValue(requestBodyBuilder.toString(), Card.class);
-            ApiResult rst = library.showBorrowHistory(card.getCardId());
+            ApiResult rst = library.showBorrowHistory(id);
             if (!rst.ok) throw new Exception(rst.message);
             List<BorrowHistories.Item> items = ((BorrowHistories)(rst.payload)).getItems();
             StringBuilder response = new StringBuilder("[");
@@ -59,6 +67,7 @@ public class ShowBorrowHistoryHandler implements HttpHandler {
             outputStream.write(response.toString().getBytes());
             outputStream.close();
         } catch (Exception e) {
+            e.printStackTrace();
             exchange.getResponseHeaders().set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(400, 0);
             OutputStream outputStream = exchange.getResponseBody();

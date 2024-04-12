@@ -8,6 +8,7 @@ import com.sun.net.httpserver.HttpHandler;
 import entities.Book;
 import library.Library;
 import library.LibraryManagementSystem;
+import log.Log;
 import queries.ApiResult;
 
 import java.io.*;
@@ -29,7 +30,7 @@ public class MassiveStoreBookHandler implements HttpHandler {
         // 注意判断要用equals方法而不是==啊，java的小坑（
         if (requestMethod.equals("OPTIONS")) {
             // 处理OPTIONS
-            exchange.sendResponseHeaders(400, -1);
+            exchange.sendResponseHeaders(200, -1);
         } else if (requestMethod.equals("POST")) {
             handlePostRequest(exchange);
         } else {
@@ -39,6 +40,7 @@ public class MassiveStoreBookHandler implements HttpHandler {
     }
 
     private void handlePostRequest(HttpExchange exchange) throws IOException {
+        Log.log.info("MassiveStoreBookPost");
         InputStream requestBody = exchange.getRequestBody();
         BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));
         StringBuilder requestBodyBuilder = new StringBuilder();
@@ -56,6 +58,7 @@ public class MassiveStoreBookHandler implements HttpHandler {
             outputStream.write("Massively store book successfully".getBytes());
             outputStream.close();
         } catch (Exception e) {
+            e.printStackTrace();
             exchange.getResponseHeaders().set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(400, 0);
             OutputStream outputStream = exchange.getResponseBody();

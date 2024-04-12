@@ -7,6 +7,7 @@ import com.sun.net.httpserver.HttpHandler;
 import entities.Card;
 import library.Library;
 import library.LibraryManagementSystem;
+import log.Log;
 import queries.ApiResult;
 import queries.CardList;
 
@@ -26,6 +27,7 @@ public class CardHandler implements HttpHandler {
             // 解析请求的方法，看GET还是POST
             String requestMethod = exchange.getRequestMethod();
             // 注意判断要用equals方法而不是==啊，java的小坑（
+            Log.log.info("incard"+requestMethod);
             switch (requestMethod) {
                 case "GET":
                     // 处理GET
@@ -37,12 +39,14 @@ public class CardHandler implements HttpHandler {
                     break;
                 case "OPTIONS":
                     // 处理OPTIONS
-                    exchange.sendResponseHeaders(400, -1);
+                    exchange.sendResponseHeaders(200, -1);
+
                     break;
                 case "DELETE":
                     handleDeleteRequest(exchange);
                     break;
                 default:
+                    Log.log.warning("carderror");
                     // 其他请求返回405 Method Not Allowed
                     exchange.sendResponseHeaders(405, -1);
                     break;
@@ -51,6 +55,7 @@ public class CardHandler implements HttpHandler {
 
 
     private void handlePostRequest(HttpExchange exchange) throws IOException {
+        Log.log.info("cardpost");
         InputStream requestBody = exchange.getRequestBody();
         BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));
         StringBuilder requestBodyBuilder = new StringBuilder();
@@ -70,6 +75,7 @@ public class CardHandler implements HttpHandler {
             outputStream.close();
         }
         catch (Exception e){
+            e.printStackTrace();
             exchange.getResponseHeaders().set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(400, 0);
             OutputStream outputStream = exchange.getResponseBody();
@@ -79,6 +85,7 @@ public class CardHandler implements HttpHandler {
     }
 
     private void handleGetRequest(HttpExchange exchange) throws IOException {
+        Log.log.info("cardget");
         try{
             ApiResult rst = library.showCards();
             List<Card> cards = ((CardList)(rst.payload)).getCards();
@@ -104,6 +111,7 @@ public class CardHandler implements HttpHandler {
         }
     }
     private void handleDeleteRequest(HttpExchange exchange) throws IOException {
+        Log.log.info("carddelete");
         InputStream requestBody = exchange.getRequestBody();
         BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));
         StringBuilder requestBodyBuilder = new StringBuilder();
@@ -111,8 +119,10 @@ public class CardHandler implements HttpHandler {
         while ((line = reader.readLine()) != null) {
             requestBodyBuilder.append(line);
         }
+//        System.out.println(requestBodyBuilder.toString());
         try {
             Card card = objectMapper.readValue(requestBodyBuilder.toString(), Card.class);
+//            System.out.println("I get"+card.getCardId());
             ApiResult rst = library.removeCard(card.getCardId());
             if(!rst.ok)throw new Exception(rst.message);
             exchange.getResponseHeaders().set("Content-Type", "text/plain");
@@ -122,6 +132,7 @@ public class CardHandler implements HttpHandler {
             outputStream.close();
         }
         catch (Exception e){
+            e.printStackTrace();
             exchange.getResponseHeaders().set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(400, 0);
             OutputStream outputStream = exchange.getResponseBody();

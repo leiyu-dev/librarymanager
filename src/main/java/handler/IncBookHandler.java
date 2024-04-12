@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import library.Library;
 import library.LibraryManagementSystem;
+import log.Log;
 import queries.ApiResult;
 
 import java.io.*;
@@ -38,7 +39,7 @@ public class IncBookHandler implements HttpHandler {
         headers.add("Access-Control-Allow-Headers", "Content-Type");
         String requestMethod = exchange.getRequestMethod();
         if (requestMethod.equals("OPTIONS")) {
-            exchange.sendResponseHeaders(400, -1);
+            exchange.sendResponseHeaders(200, -1);
         } else if (requestMethod.equals("PUT")) {
             handlePutRequest(exchange);
         } else {
@@ -47,6 +48,7 @@ public class IncBookHandler implements HttpHandler {
     }
 
     private void handlePutRequest(HttpExchange exchange) throws IOException {
+        Log.log.info("bookincreaseput");
         InputStream requestBody = exchange.getRequestBody();
         BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));
         StringBuilder requestBodyBuilder = new StringBuilder();
@@ -64,6 +66,7 @@ public class IncBookHandler implements HttpHandler {
             outputStream.write("Increase book successfully".getBytes());
             outputStream.close();
         } catch (Exception e) {
+            e.printStackTrace();
             exchange.getResponseHeaders().set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(400, 0);
             OutputStream outputStream = exchange.getResponseBody();
