@@ -10,10 +10,10 @@ export default defineConfig({
   ],
   server:{
     host:'0.0.0.0',
-    https:true
+    // https:true
   },
   devServer:{
-    https:true
+    // https:true
   },
   resolve: {
     alias: {

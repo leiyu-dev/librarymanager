@@ -16,6 +16,10 @@
       改变库存
     </el-button>
 
+    <el-button class="incBookAdd" @click="selectedFile=null,masIncBookVisible=true">
+      批量上传图书
+    </el-button>
+
     <el-button class="incBookAdd" @click="InitRawModify">
       修改图书信息
     </el-button>
@@ -34,7 +38,7 @@
 
     <!-- 图书显示 -->
     <el-table :data="books"
-              style="width: 100%; margin-left: 20px; margin-top: 30px; margin-right: 30px; max-width: 80vw;table-layout: auto">
+              style="width: 100%; margin-left: 20px; margin-top: 30px; margin-right: 30px; max-width: 80vw;table-layout:fixed ">
       <el-table-column prop="bookId" label="图书ID" sortable/>
       <el-table-column prop="category" label="类别" sortable/>
       <el-table-column prop="title" label="书名" sortable/>
@@ -44,7 +48,10 @@
       <el-table-column prop="price" label="价格" sortable/>
       <el-table-column prop="stock" label="库存" sortable/>
       <el-table-column label="操作"><template #default="{ row }">
-          <el-button @click="modifyBook={...row},modifyBookVisible=true,rawModifyBookVisible=false">修改信息</el-button>
+          <el-button style="margin-left: -10px;" @click="modifyBook={...row},modifyBookVisible=true,rawModifyBookVisible=false">修改信息</el-button>
+        <el-button style="margin-left: -10px;" class="removeBook" type="danger" @click="removeBookId=row.bookId, removeBookVisible=true">
+          删除图书
+        </el-button>
       </template>
       </el-table-column>
 
@@ -87,6 +94,39 @@
                 <span>
                     <el-button @click="newBookVisible = false">取消</el-button>
                     <el-button type="primary" @click="ConfirmNewBook">确定</el-button>
+                </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="masIncBookVisible" title="批量上传书本" width='30%' align-center>
+      <div>
+          仅支持上传文本文件(.txt)
+        <br>
+        &emsp;&emsp; 格式一：每一行表示一本书，一行内从左到右为：类别,书名,出版社,出版年份,作者,价格,库存，每个信息之间用一个英文逗号隔开，中间不要有多余空格。下面是一个合法文件的例子：
+        Sci,DataBase,Press A,114,No author,11,22<br>
+        SciS,DataBases,Press B,114,No author,11,22
+        <br>
+        &emsp;&emsp;格式二：json格式，为一个类似下面的图书数组：
+        <br>
+        [{
+        "category":"Sci",
+        "title":"Fuck Is a Wisdom",
+        "press":"Fuck Press",
+        "publishYear":114514,
+        "author":"Known",
+        "price":114.514,
+        "stock":114
+        }]
+      </div>
+      <div style="margin-top: 20px;margin-bottom: 20px;">
+        <input type="file" v-on="selectedFile" @change="handleFileUpload" />
+      </div>
+      若确认无法点击则说明格式错误
+      <template #footer>
+                <span>
+                    <el-button @click="masIncBookVisible = false">取消</el-button>
+                    <el-button type="primary" :disabled="fileContent===null||(fileContent.match(/\S/))[0]==='['" @click="ConfirmMasNewBook">格式一</el-button>
+                    <el-button type="primary" :disabled="fileContent===null||(fileContent.match(/\S/))[0]!=='['" @click="ConfirmMasNewBookraw">格式二</el-button>
                 </span>
       </template>
     </el-dialog>
@@ -289,6 +329,7 @@ export default {
     return {
       books: [],
       Search,
+      selectedFile:null,
       toSearch: '',
       SearchConditions: {
         category: null,
@@ -352,6 +393,7 @@ export default {
       removeBookVisible: false,
       returnBookVisible: false,
       borrowBookVisible: false,
+      masIncBookVisible: false,
       returnBookId: "",
       returnCardId: "",
       borrowBookId: "",
@@ -373,6 +415,7 @@ export default {
       rawModifyBookVisible: false,
       incBookId: "",
       incBookStock: "",
+      fileContent:null,
     }
   },
   methods: {
@@ -468,7 +511,7 @@ export default {
         } else {
           ElMessage.error('请求失败，但没有收到响应：' + error.message);
         }
-      });;
+      });
     },
     ConfirmBorrowBook() {
       axios.post("/book/borrow",
@@ -487,7 +530,7 @@ export default {
         } else {
           ElMessage.error('请求失败，但没有收到响应：' + error.message);
         }
-      });;
+      });
     },
     ConfirmIncBook() {
       axios.put("/book/inc",
@@ -505,7 +548,7 @@ export default {
         } else {
           ElMessage.error('请求失败，但没有收到响应：' + error.message);
         }
-      });;
+      });
     },
     ConfirmQueryBook() {
       this.QueryBooks();
@@ -531,6 +574,59 @@ export default {
       };
       this.rawModifyBookVisible=true;
       this.modifyBookVisible=true;
+    },
+    handleFileUpload(event) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.fileContent = e.target.result;
+      };
+      reader.readAsText(event.target.files[0]);
+    },
+    ConfirmMasNewBook(){
+      const lines = this.fileContent.split('\n');
+      const result = lines.filter(line => line.trim() !== '').map(line => {
+        const [category, title, press, publishYear, author, price, stock] = line.split(',');
+        return {
+          category: category,
+          title: title,
+          press: press,
+          publishYear :parseInt(publishYear),
+          author: author,
+          price: parseFloat(price),
+          stock: parseInt(stock)
+        };
+      });
+      axios.post("/book/mstore", result)
+          .then(response => {
+            ElMessage.success("入库成功");
+            this.masIncBookVisible=false;
+            this.fileContent= null;
+            this.QueryBooks();
+            this.selectedFile=null;
+          }).catch(error => {
+        if (error.response) {
+          ElMessage.error('错误：'+ error.response.data);
+        } else {
+          ElMessage.error('请求失败，但没有收到响应：' + error.message);
+        }
+      });
+    },
+    ConfirmMasNewBookraw(){
+      const jsonData = JSON.parse(this.fileContent);
+      axios.post("/book/mstore", jsonData)
+          .then(response => {
+            ElMessage.success("入库成功");
+            this.masIncBookVisible=false;
+            this.fileContent= null;
+            this.QueryBooks();
+            this.selectedFile=null;
+          }).catch(error => {
+        if (error.response) {
+          ElMessage.error('错误：'+ error.response.data);
+        } else {
+          ElMessage.error('请求失败，但没有收到响应：' + error.message);
+        }
+      });
     }
   },
   mounted() {
