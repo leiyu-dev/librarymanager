@@ -80,6 +80,7 @@
         <!-- 修改信息对话框 -->   
         <el-dialog v-model="modifyCardVisible" :title="'修改信息(借书证ID: ' + this.toModifyInfo.cardId + ')'" width="30%"
             align-center>
+          该功能并不完善，因为题目没要求
             <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
                 姓名：
                 <el-input v-model="toModifyInfo.name" style="width: 12.5vw;" clearable />
@@ -159,13 +160,14 @@ export default {
                 department: '',
                 type: '学生'
             },
+            modifyok: false,
         }
     },
     methods: {
         ConfirmNewCard() {
             // 发出POST请求
-          if(this.newCardInfo.type==='学生')this.newCardInfo.type='Student';
-          else if(this.newCardInfo.type==='教师')this.newCardInfo.type='Teacher';
+          if(this.newCardInfo.type==="学生")this.newCardInfo.type='Student';
+          else if(this.newCardInfo.type==="教师")this.newCardInfo.type='Teacher';
             axios.post("/card",
                 { // 请求体
                     name: this.newCardInfo.name,
@@ -176,11 +178,30 @@ export default {
                     ElMessage.success("借书证新建成功") // 显示消息提醒
                     this.newCardVisible = false // 将对话框设置为不可见
                     this.QueryCards() // 重新查询借书证以刷新页面
-                })
+                }).catch(error => {
+              if (error.response) {
+                ElMessage.error('错误：'+ error.response.data);
+              } else {
+                ElMessage.error('请求失败，但没有收到响应：' + error.message);
+              }
+            })
         },
-        ConfirmModifyCard() {
-            axios.delete("/card",
-                {data: {cardId:this.toModifyInfo.cardId}});
+        async ConfirmModifyCard() {
+            this.modifyok=true;
+            await axios.delete("/card", {data: {cardId:this.toModifyInfo.cardId}})
+                .catch(error => {
+                  this.modifyok=false;
+              if (error.response) {
+                this.modifyok=false;
+                ElMessage.error('错误：'+ error.response.data);
+              } else {
+                this.modifyok=false;
+                ElMessage.error('请求失败，但没有收到响应：' + error.message);
+              }
+            });
+           if(this.modifyok===false)return;
+            if(this.toModifyInfo.type==="学生")this.toModifyInfo.type='Student';
+            if(this.toModifyInfo.type==="教师")this.toModifyInfo.type='Teacher';
             axios.post("/card",
                 {
                     cardId:this.toModifyInfo.cardId,
@@ -192,7 +213,13 @@ export default {
                     ElMessage.success("借书证修改成功") // 显示消息提醒
                     this.modifyCardVisible = false // 将对话框设置为不可见
                     this.QueryCards() // 重新查询借书证以刷新页面
-                })
+                }).catch(error => {
+              if (error.response) {
+                ElMessage.error('错误：'+ error.response.data);
+              } else {
+                ElMessage.error('请求失败，但没有收到响应：' + error.message);
+              }
+            })
                 
 
         },
@@ -206,7 +233,13 @@ export default {
                     ElMessage.success("借书证删除成功") // 显示消息提醒
                     this.removeCardVisible = false // 将对话框设置为不可见
                     this.QueryCards() // 重新查询借书证以刷新页面
-                })
+                }).catch(error => {
+              if (error.response) {
+                ElMessage.error('错误：'+ error.response.data);
+              } else {
+                ElMessage.error('请求失败，但没有收到响应：' + error.message);
+              }
+            })
         },
         async QueryCards() {
             this.cards = [] // 清空列表
@@ -215,8 +248,16 @@ export default {
                     let cards = response.data // 接收响应负载
 
                     cards.forEach(card => { // 对于每个借书证
-                        this.cards.push(card) // 将其加入到列表中
+                        if(card.type==="Student")card.type="学生";
+                        if(card.type==="Teacher")card.type="教师";
+                        this.cards.push(card); // 将其加入到列表中
                     })
+                }).catch(error => {
+                  if (error.response) {
+                    ElMessage.error('错误：'+ error.response.data);
+                  } else {
+                    ElMessage.error('请求失败，但没有收到响应：' + error.message);
+                  }
                 })
         }
     },
