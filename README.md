@@ -1,4 +1,4 @@
-# Project 1 for Class Database System
+# Project 1 of Class Database System
 Implemented independently by lei_yu
 
 ---------------
